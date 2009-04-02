@@ -1,0 +1,16 @@
+Changes
+Makefile.PL
+MANIFEST
+ppport.h
+README
+Rectangle.xs
+lib/AI/Pathfinding/AStar/Rectangle.pm
+t/00-AI-Pathfinding-AStar-Rectangle.t
+t/01-simple.t
+t/02-passability.t
+t/03-path-valid.t
+t/04-astar.t
+
+examples/snake_labirint.pl
+Benchmark/perl-vs-xs.pl
+META.yml                                 Module meta-data (added by MakeMaker)

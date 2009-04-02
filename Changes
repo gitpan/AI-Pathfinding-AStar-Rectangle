@@ -1,0 +1,8 @@
+Revision history for Perl extension AI::Pathfinding::AStar::Rectangle.
+
+0.01  Wed Apr  1 13:54:05 2009
+	- original version; created by h2xs 1.23 with options
+		-A -n AI::Pathfinding::AStar::Rectangle
+
+0.02  Wed Apr  1 13:54:05 2009
+    -   Some bugfixes
