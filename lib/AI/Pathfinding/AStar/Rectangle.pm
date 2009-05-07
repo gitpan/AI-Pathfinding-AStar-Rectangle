@@ -24,7 +24,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(	
 );
 
-our $VERSION = '0.10';
+our $VERSION = '0.12';
 
 require XSLoader;
 XSLoader::load('AI::Pathfinding::AStar::Rectangle', $VERSION);
@@ -97,7 +97,7 @@ AI::Pathfinding::AStar::Rectangle -  AStar search on rectangle map
 
   use AI::Pathfinding::AStar::Rectangle qw(create_map);
 
-  my $map = create_map({heigth=>10, width=>10}); 
+  my $map = create_map({height=>10, width=>10}); 
   for my $x ($map->start_x..$map->last_x){
       for my $y ($map->start_y..$map->last_y)
           $map->set_value($x, $y, $A[$x][$y]) # 1 - Can pass throu , 0 - Can't
@@ -117,9 +117,9 @@ AI::Pathfinding::AStar::Rectangle provide abstraction for Rectangle map with ASt
 
 =over 4
 
-=item new { "width" => map_width, "heigth" => map_heigth }
+=item new { "width" => map_width, "height" => map_heigth }
 
-Create AI::Pathfinding::AStar::Rectangle object. Object represent map with given heigth and width.
+Create AI::Pathfinding::AStar::Rectangle object. Object represent map with given height and width.
 
 =item set_passability  x, y, value # value: 1 - can pass through point, 0 - can't 
 
@@ -146,9 +146,9 @@ where
 
 Get map width
 
-=item heigth()
+=item height()
 
-Get map heigth
+Get map height
 
 =item start_x(), start_y()
 
@@ -171,7 +171,7 @@ $map->foreach_xy( sub { $A[$a][$b] = $_ })
  BLOCK must return passability for point ($a, $b);
  $a and  $b must be global var not declared as my, our, 
 
-=item path_valid( start_x, start_y, path)
+=item is_path_valid( start_x, start_y, path)
 
 In scalar context return boolean value, 
 true - if every point on path is passable, else return false

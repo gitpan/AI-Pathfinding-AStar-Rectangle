@@ -11,13 +11,13 @@ use AI::Pathfinding::AStar::Rectangle qw(create_map);
 1 for $Test::More::TODO;
 our $T = 'AI::Pathfinding::AStar::Rectangle';
 
-my $a= $T->new({ width => 12, heigth => 15 });
+my $a= $T->new({ width => 12, height => 15 });
 ok($a);
 is(ref ($a), $T);
-is(ref create_map({width=>1, heigth=>1}), $T);
+is(ref create_map({width=>1, height=>1}), $T);
 
 is($a->width, 12, 'width');
-is($a->heigth, 15, 'heigth');
+is($a->height, 15, 'height');
 is($a->start_x, 0, 'start_x of new map eq 0');
 is($a->start_y, 0, 'start_y of new map eq 0');
 is($a->last_x, 11, 'last_x of new map eq 0');

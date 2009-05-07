@@ -12,7 +12,7 @@ BEGIN {
 }
 
 {
-    my $m = $T->new( { width => 5, heigth => 5 } );
+    my $m = $T->new( { width => 5, height => 5 } );
     for my $d ( "0" .. "9" ) {
 
         #    is_deeply([$m->validate_path(0,0,$d)], ['']);
@@ -40,7 +40,7 @@ BEGIN {
         is_deeply( [ $m->astar( 3, 6, $x, $y ) ], [ $_, 1 ], "curry" );
     }
     for ( split "", 12346789 ) {
-        my ( $x, $y , $metric, $res) = $m->path_valid( 4, 7, $_ x 2 );
+        my ( $x, $y , $metric, $res) = $m->is_path_valid( 4, 7, $_ x 2 );
         is_deeply(
             [ $m->astar( 4, 7, $x, $y ) ],
             [ $_ x 2, 1 ],

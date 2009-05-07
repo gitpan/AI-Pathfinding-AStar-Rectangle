@@ -23,7 +23,7 @@ struct map_item{
 };
 struct map_like{
     unsigned int width;
-    unsigned int heigth;
+    unsigned int height;
     signed int start_x;
     signed int start_y;
     signed int current_x;
@@ -38,14 +38,14 @@ static  int path_weigths[10]={50,14,10,14,10,50,10,14,10,14};
 bool check_options(pmap map, HV *opts){
     if (!hv_exists(opts, "width", 5))
         return 0;
-    if (!hv_exists(opts, "heigth", 6))
+    if (!hv_exists(opts, "height", 6))
         return 0;
 
     SV ** item;
     item = hv_fetch(opts, "width", 5, 0);
     map->width = SvIV(*item);
-    item = hv_fetch(opts, "heigth", 6, 0);
-    map->heigth = SvIV(*item);
+    item = hv_fetch(opts, "height", 6, 0);
+    map->height = SvIV(*item);
     return 1;
 }
 
@@ -74,7 +74,7 @@ inline on_the_map(pmap newmap, int x, int y){
     if (x< newmap->start_x  ||y< newmap->start_y ){
         return 0;
     }
-    else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->heigth){
+    else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->height){
         return 0;
     }
     return 1;
@@ -102,7 +102,7 @@ SV * self;
 SV * options;
     INIT:
     int width;
-    int heigth;
+    int height;
     SV * object;
     struct map_like re_map;
     pmap newmap;
@@ -110,23 +110,24 @@ SV * options;
     SV *RETVALUE;
     PPCODE:
         if (!(SvROK(options) && (is_hash(SvRV(options))))){
-            croak("Not hashref: USAGE: new( {width=>10, heigth=>20})");            
+            croak("Not hashref: USAGE: new( {width=>10, height=>20})");            
         }
         if (!check_options(&re_map, (HV *) SvRV(options))){
-            croak("Not enougth params: USAGE: new( {width=>10, heigth=>20})");            
+            croak("Not enougth params: USAGE: new( {width=>10, height=>20})");            
             croak("Fail found mandatory param");
         }
         object  = sv_2mortal(newSVpvn("",0));
 
 
-        SvGROW(object, map_size = sizeof(struct map_like)+(re_map.width + 2) * (re_map.heigth+2));
+        SvGROW(object, map_size = sizeof(struct map_like)+(re_map.width + 2) * (re_map.height+2));
 
         newmap = (pmap) SvPV_nolen(object);
 
         Zero(newmap, map_size, char);
 
         newmap->width = re_map.width;
-        newmap->heigth = re_map.heigth;
+        newmap->height = re_map.height;
+        SvCUR_set(object, map_size);
         RETVALUE = sv_2mortal( newRV_inc(object ));
         sv_bless(RETVALUE, gv_stashpv("AI::Pathfinding::AStar::Rectangle", GV_ADD));
         XPUSHs(RETVALUE);
@@ -186,7 +187,7 @@ SV * self;
         
 
 void 
-heigth(self)
+height(self)
 SV * self;
     INIT:
     pmap newmap;
@@ -194,7 +195,7 @@ SV * self;
         if (!sv_isobject(self))
             croak("Need object");
         newmap = (pmap) SvPV_nolen(SvRV(self));
-        XPUSHs(sv_2mortal(newSViv(newmap->heigth)));
+        XPUSHs(sv_2mortal(newSViv(newmap->height)));
 
 void 
 last_x(self)
@@ -219,7 +220,7 @@ SV * self;
         if (!sv_isobject(self))
             croak("Need object");
         newmap = (pmap) SvPV_nolen(SvRV(self));
-        XPUSHs(sv_2mortal(newSViv(newmap->start_y + (signed)newmap->heigth-1)));
+        XPUSHs(sv_2mortal(newSViv(newmap->start_y + (signed)newmap->height-1)));
 
 void 
 set_start_xy(self, x, y)
@@ -251,7 +252,7 @@ int y;
         if (x - newmap->start_x < 0 ||y - newmap->start_y <0){
             XPUSHs(&PL_sv_no);
         }
-        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->heigth){
+        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->height){
             XPUSHs(&PL_sv_no);
         }
         else {
@@ -275,7 +276,7 @@ int value;
             warn("x=%d,y=%d outside map", x, y);
             XPUSHs(&PL_sv_no);
         }
-        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->heigth){
+        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->height){
             warn("x=%d,y=%d outside map", x, y);
             XPUSHs(&PL_sv_no);
         }
@@ -328,7 +329,7 @@ CODE:
     GvSV(PL_defgv)  = value;
     PUSH_MULTICALL(cv);
     if (items>2){
-        for(y =newmap->heigth-1 ; y>=0; --y){
+        for(y =newmap->height-1 ; y>=0; --y){
             for (x = 0; x < newmap->width; ++x){
                 sv_setiv(x1,x + newmap->start_x);
                 sv_setiv(y1,y + newmap->start_y);
@@ -340,7 +341,7 @@ CODE:
 
     }
     else {
-        for(y =0; y< newmap->heigth; ++y){
+        for(y =0; y< newmap->height; ++y){
             for (x = 0; x < newmap->width; ++x){
                 sv_setiv(x1,x + newmap->start_x);
                 sv_setiv(y1,y + newmap->start_y);
@@ -387,7 +388,7 @@ CODE:
     GvSV(bgv) = y1;
     GvSV(PL_defgv)  = value;
     PUSH_MULTICALL(cv);
-    for(y =0; y< newmap->heigth; ++y){
+    for(y =0; y< newmap->height; ++y){
         for (x = 0; x < newmap->width; ++x){
             sv_setiv(x1,x + newmap->start_x);
             sv_setiv(y1,y + newmap->start_y);
@@ -467,7 +468,7 @@ int value;
         }
         else {
             int offset = get_offset(newmap, x, y);
-            const int max_offset   =  get_offset_abs( newmap, newmap->width, newmap->heigth);
+            const int max_offset   =  get_offset_abs( newmap, newmap->width, newmap->height);
             const int min_offset   =  get_offset_abs( newmap, 0, 0);
             init_move_offset(newmap, moves,0);
             newmap->map[offset] = value;
@@ -493,7 +494,7 @@ int value;
         }
 
 void 
-path_valid(self, x, y, path)
+is_path_valid(self, x, y, path)
 SV * self;
 int x;
 int y;
@@ -510,7 +511,7 @@ char *path;
         if (x< newmap->start_x  ||y< newmap->start_y ){
             XPUSHs(&PL_sv_no);
         }
-        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->heigth){
+        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->height){
             XPUSHs(&PL_sv_no);
         }
         else {
@@ -594,8 +595,8 @@ SV* self;
             goto last_op;
         }
 
-        Newxz(layout, (2+newmap->width) * (2+newmap->heigth), struct map_item);
-        Newx(opens, (2+newmap->width) * (2+newmap->heigth), int);
+        Newxz(layout, (2+newmap->width) * (2+newmap->height), struct map_item);
+        Newx(opens, (2+newmap->width) * (2+newmap->height), int);
 
         {
             const int dx = 1;

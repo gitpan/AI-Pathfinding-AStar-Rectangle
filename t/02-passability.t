@@ -18,7 +18,7 @@ BEGIN{
     die "Can't load $T: $@." if $@;
 }
 
-my $m= $T->new({ width => 12, heigth => 15 });
+my $m= $T->new({ width => 12, height => 15 });
 my $accum;
 
 $accum = '';
@@ -67,7 +67,7 @@ for my $x (0..11){
     }
 }
 
-$m=$T->new({ width => 12, heigth => 15 });
+$m=$T->new({ width => 12, height => 15 });
 $count = 0;
 for my $y (0..14){
     for my $x (0..11){
@@ -84,7 +84,7 @@ for my $y (0..14){
 
 {
 
-    my $m=$T->new({ width => 15, heigth => 12 });
+    my $m=$T->new({ width => 15, height => 12 });
 
     for my $y(-2..14){
         for my $x (-2..17){
@@ -106,7 +106,7 @@ for my $y (0..14){
         }
     }
 
-    $m=$T->new({ width => 15, heigth => 12 });
+    $m=$T->new({ width => 15, height => 12 });
     $count = 0;
     for my $x (0..14){
         for my $y (0..11){
