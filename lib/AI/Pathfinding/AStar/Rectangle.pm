@@ -24,7 +24,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(	
 );
 
-our $VERSION = '0.12';
+our $VERSION = '0.15';
 
 require XSLoader;
 XSLoader::load('AI::Pathfinding::AStar::Rectangle', $VERSION);
@@ -37,6 +37,21 @@ sub create_map($){
 }
 
 1 for ($a, $b); #suppress warnings
+
+sub set_passability_string{
+    my $self = shift;
+    my $passability = shift;
+    die "Bad passabilitity param for set_passability_string" unless $self->width * $self->height == length( $passability );
+    $self->foreach_xy_set( sub { substr $passability, 0, 1, '' } );
+
+}
+sub get_passability_string{
+    my $self = shift;
+    my $buf = '';
+    $self->foreach_xy( sub { $buf.= chr( $_)} );
+    return $buf;
+}
+
 
 sub draw_path{
     my $map  = shift;
@@ -87,20 +102,25 @@ sub draw_path{
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-AI::Pathfinding::AStar::Rectangle -  AStar search on rectangle map
+AI::Pathfinding::AStar::Rectangle -  AStar algorithm  on rectangle map
 
 =head1 SYNOPSIS
 
   use AI::Pathfinding::AStar::Rectangle qw(create_map);
 
   my $map = create_map({height=>10, width=>10}); 
+
+  # 
+  # -or- 
+  #
+  # $map = AI::Pathfinding::AStar::Rectangle->new({{height=>10, width=>10});
+
   for my $x ($map->start_x..$map->last_x){
-      for my $y ($map->start_y..$map->last_y)
-          $map->set_value($x, $y, $A[$x][$y]) # 1 - Can pass throu , 0 - Can't
+      for my $y ($map->start_y..$map->last_y){
+          $map->set_passability($x, $y, $A[$x][$y]) # 1 - Can pass througth , 0 - Can't pass
       }
   }
   
@@ -133,7 +153,7 @@ Get passability for point
 
 Search path from one point to other
 
-return path like "1234"
+return path like "1234..9"
 
 where
 1 - mean go left-down
@@ -142,6 +162,8 @@ where
 ...
 9 - right-up
 
+=item dastar( from_x, from_y, to_x, to_y)
+    Return diagonal path with AI 
 =item width()
 
 Get map width
@@ -153,6 +175,10 @@ Get map height
 =item start_x(), start_y()
 
 Get/Set coords for leftbottom-most point 
+
+=item set_start_xy( self, x, y)
+
+Set coordinates of left-bootom point
 
 =item last_x(), last_y()
 
@@ -172,21 +198,39 @@ $map->foreach_xy( sub { $A[$a][$b] = $_ })
  $a and  $b must be global var not declared as my, our, 
 
 =item is_path_valid( start_x, start_y, path)
-
-In scalar context return boolean value, 
-true - if every point on path is passable, else return false
-In list context return 
-( end_x, end_y, weigth, true or false )
-
+    Check if path is valid path, all points from ( start_x, start_y ) to path end is passable
+    
+    In list context return ( end_x, end_y, weigth, true or false )
 
 =item path_goto( start_x, start_y, path)
 
 In list context return 
 ( end_x, end_y, weigth )
+    weight is sum of <diagonal (1379)> * 14 + <short path> * 10
 
 =item draw_path( start_x, start_y, path)
-
  print path to STDOUT
+ #!/usr/bin/perl 
+ #
+ my $m = AI::Pathfinding::AStar::Rectangle->new({ width => 16, height => 8 });
+
+ $m->foreach_xy_set( sub {  $a < 12 && 1<$b && $b <9 } );
+ $m->draw_path( 5, 5, '1666666888' );
+ 
+Result: 
+
+#    Steps: 10
+#    00010203040506070809101112131415
+#    |#|#|#|#|#|#|#|#|#|#|#|#|#|#|#0
+#    |#|#|#|#|#|#|#|#|#|#|#|#|#|#|#1
+#    |_|_|_|_|_|_|_|_|_|_|_|_|#|#|#2
+#    |_|_|_|_|_|_|_|_|_|_|_|_|#|#|#3
+#    |_|_|_|_|o|o|o|o|o|o|o|_|#|#|#4
+#    |_|_|_|_|_|o|_|_|_|_|o|_|#|#|#5
+#    |_|_|_|_|_|_|_|_|_|_|o|_|#|#|#6
+#    |_|_|_|_|_|_|_|_|_|_|o|_|#|#|#7
+#    |_|_|_|_|_|_|_|_|_|_|_|_|#|#|#8
+
 
 =head2 EXAMPLES
 

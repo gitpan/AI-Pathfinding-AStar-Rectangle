@@ -13,7 +13,7 @@ BEGIN{
 my $m  = $T->new({ width => 5, height => 5 });
 for my $d ("0".."9"){
     is_deeply([$m->is_path_valid(0,0,$d)], ['']);
-    print Dumper([$m->is_path_valid(0,0,$d)], ['']);
+    #print Dumper([$m->is_path_valid(0,0,$d)], ['']);
 };
 
 $m->set_start_xy(2,5);
@@ -24,19 +24,19 @@ for my $x (2..6){
     }
 }
 
-is_deeply( [$m->is_path_valid(2,5, $_)], [''],  "failed from 2,5 path=$_") for split "", 73412;
-is_deeply( [scalar $m->is_path_valid(2,5, $_)], [1],  "success from 2,5 path=$_") for split "", 89605;
+is_deeply( [$m->is_path_valid(2,5, $_)], [''],  "failed from 2,5 path=$_") for split "", 74189;
+is_deeply( [scalar $m->is_path_valid(2,5, $_)], [1],  "success from 2,5 path=$_") for split "", 23605;
 
-is_deeply( [$m->is_path_valid(2,9, $_)], [''],  "failed from 2,5 path=$_") for split "", 14789;
-is_deeply( [scalar $m->is_path_valid(2,9, $_)], [1],  "success from 2,5 path=$_") for split "", 23605;
+is_deeply( [$m->is_path_valid(2,9, $_)], [''],  "failed from 2,9 path=$_") for split "", 12347;
+is_deeply( [scalar $m->is_path_valid(2,9, $_)], [1],  "success from 2,9 path=$_") for split "", 89605;
 
 
 
-is_deeply( [$m->is_path_valid(6,5, $_)], [''],  "failed from 2,5 path=$_") for split "", 12369;
-is_deeply( [scalar $m->is_path_valid(6,5, $_)], [1],  "success from 2,5 path=$_") for split "", 47805;
+is_deeply( [$m->is_path_valid(6,5, $_)], [''],  "failed from 6,5 path=$_") for split "", 36789;
+is_deeply( [scalar $m->is_path_valid(6,5, $_)], [1],  "success from 6,5 path=$_") for split "", 41205;
 
-is_deeply( [$m->is_path_valid(6,9, $_)], [''],  "failed from 2,5 path=$_") for split "", 78963;
-is_deeply( [scalar $m->is_path_valid(6,9, $_)], [1],  "success from 2,5 path=$_") for split "", 12405;
+is_deeply( [$m->is_path_valid(6,9, $_)], [''],  "failed from 6,9 path=$_") for split "", 12369;
+is_deeply( [scalar $m->is_path_valid(6,9, $_)], [1],  "success from 6,9 path=$_") for split "", 47805;
 
 
 

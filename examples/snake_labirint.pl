@@ -1,14 +1,20 @@
 use ExtUtils::testlib;
 use AI::Pathfinding::AStar::Rectangle;
 use Data::Dumper;
+#~ use constant WIDTH_X => 16;
+#~ use constant WIDTH_Y => 10;
 use constant WIDTH_X => 64;
 use constant WIDTH_Y => 32;
 
 
-my $m = AI::Pathfinding::AStar::Rectangle->new({ width => WIDTH_X, heigth => WIDTH_Y });
+my $m = AI::Pathfinding::AStar::Rectangle->new({ width => WIDTH_X, height => WIDTH_Y });
 use strict;
 use warnings; 
 no warnings 'once';
+
+#~ $m->foreach_xy_set( sub {  $a < 12 && 1<$b && $b <9 } );
+#~ $m->draw_path( 5, 5, '1666666888' );
+#~ exit;
 
 my @from = (0,0);
 my @to   = (WIDTH_X >> 1, WIDTH_Y >> 1);
@@ -35,7 +41,7 @@ my @map;
     $map[$_][15] = 0 for 15 .. WIDTH_X - 15;
 }
 
-# copy map to maap object
+# copy map to map object
 $m->foreach_xy_set( sub { $map[$a][$b] });
 
 my ($path) = $m->astar(@to, @from);

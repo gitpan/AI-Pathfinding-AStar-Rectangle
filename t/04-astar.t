@@ -27,16 +27,17 @@ BEGIN {
         }
     }
     is_deeply( [ $m->astar( 2, 5, 2, 5 ) ], [ '',  1 ], "empty path" );
-    is_deeply( [ $m->astar( 2, 5, 2, 6 ) ], [ '8', 1 ], " path= 8" );
+    is_deeply( [ $m->astar( 2, 5, 2, 6 ) ], [ '2', 1 ], " path= 8" );
     is_deeply( [ $m->astar( 2, 5, 3, 5 ) ], [ '6', 1 ], " path= 6" );
-    is_deeply( [ $m->astar( 2, 5, 3, 6 ) ], [ '9', 1 ], " path= 9" );
+    is_deeply( [ $m->astar( 2, 5, 3, 6 ) ], [ '3', 1 ], " path= 9" );
 
-    for ( split "", 12347 ) {
+    for ( split "", 14789 ) {
         my ( $x, $y ) = $m->path_goto( 2, 5, $_ );
         is_deeply( [ $m->astar( 2, 5, $x, $y ) ], [""], "no path" );
     }
     for ( split "", 12346789 ) {
         my ( $x, $y ) = $m->path_goto( 3, 6, $_ );
+        print join " ", 3, 6, $x, $y, $_,"\n";
         is_deeply( [ $m->astar( 3, 6, $x, $y ) ], [ $_, 1 ], "curry" );
     }
     for ( split "", 12346789 ) {
