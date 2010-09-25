@@ -6,3 +6,8 @@ Revision history for Perl extension AI::Pathfinding::AStar::Rectangle.
 
 0.02  Wed Apr  1 13:54:05 2009
     -   Some bugfixes
+0.16  September 25  23:34 2010
+    -  foreach_xy foreach_xy_set implemented in PP.
+    -  added clone. 
+    -  added test for this functions
+

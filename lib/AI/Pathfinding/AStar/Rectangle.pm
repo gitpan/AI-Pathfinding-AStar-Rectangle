@@ -24,13 +24,45 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(	
 );
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 require XSLoader;
 XSLoader::load('AI::Pathfinding::AStar::Rectangle', $VERSION);
 
 # Preloaded methods go here.
 
+sub foreach_xy{
+    my $self = shift;
+    my $sub  = shift;
+    no strict 'refs';
+    local *a= *{ caller() . '::a' };
+    local *b= *{ caller() . '::b' };
+    local ($a, $b );
+    local $_;
+    for $a ( $self->start_x .. $self->last_x ){
+	for $b ( $self->start_y .. $self->last_y ){
+	    $_ = $self->get_passability( $a, $b );
+	    &$sub();
+	}
+    };
+}
+sub foreach_xy_set{
+    my $self = shift;
+    my $sub  = shift;
+
+    no strict 'refs';
+    local *a= *{ caller() . '::a' };
+    local *b= *{ caller() . '::b' };
+    local ($a, $b );
+    local $_;
+    for $a ( $self->start_x .. $self->last_x ){
+	for $b ( $self->start_y .. $self->last_y ){
+	    $_ = $self->get_passability( $a, $b );
+	    $self->set_passability( $a, $b, (scalar &$sub()) );
+	};
+    };
+
+}
 sub create_map($){
     unshift @_, __PACKAGE__;
     goto &new;
