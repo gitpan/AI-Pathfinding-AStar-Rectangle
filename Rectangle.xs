@@ -7,8 +7,9 @@
 
 #define cxinc() Perl_cxinc(aTHX)
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
+#define inline 
 
-inline bool is_hash(SV *x){
+bool is_hash(SV *x){
     return SvTYPE(x) == SVt_PVHV;
 }
 
@@ -50,7 +51,7 @@ bool check_options(pmap map, HV *opts){
 }
 
 void
-inline init_move_offset(pmap map, int * const moves, int trim){
+init_move_offset(pmap map, int * const moves, int trim){
     const int dx = 1;
     const int dy = map->width + 2;
     moves[0] = 0;
@@ -74,7 +75,7 @@ inline on_the_map(pmap newmap, int x, int y){
     if (x< newmap->start_x  ||y< newmap->start_y ){
         return 0;
     }
-    else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->height){
+    else if (x - newmap->start_x >= (int )newmap->width || y - newmap->start_y >= (int)newmap->height){
         return 0;
     }
     return 1;
@@ -97,16 +98,12 @@ inline get_xy(pmap newmap, int offset, int *x,int *y){
 MODULE = AI::Pathfinding::AStar::Rectangle		PACKAGE = AI::Pathfinding::AStar::Rectangle		
 
 void 
-clone(self)
-SV * self;
-
-    INIT:
-    SV *string;
-    SV *clone;
+clone(pmap self)
+PREINIT:
+SV *string;
+SV *clone;
     PPCODE:
-	if (!sv_isobject(self))
-            croak_xs_usage(cv, "object required");
-        string = SvRV(self);
+        string = SvRV(ST(0));
 	clone = sv_newmortal();
 	sv_setsv( clone, string );
 	clone = newRV_inc( clone );
@@ -114,13 +111,58 @@ SV * self;
 	sv_bless( clone, SvSTASH( string ));
 	XPUSHs( sv_2mortal(clone));
 	
-    
+
+void 
+clone_rect(pmap self, IV begin_x, IV begin_y, IV end_x, IV end_y)
+PREINIT:
+SV *clone;
+struct map_like re_map;
+pmap newmap;
+size_t map_size;
+    PPCODE:
+	if (!on_the_map( self, begin_x, begin_y ))
+	    croak_xs_usage( cv, "left corner of  rectangle is out of the map" );
+	if (!on_the_map( self, end_x, end_y ))
+	    croak_xs_usage( cv, "rigth corner of rectangle is out of the map" );
+	if ( ! ( begin_x <= end_x ))
+	    croak_xs_usage( cv, "attemp made to make zero width rectangle" );
+	if ( ! ( begin_y <= end_y ))
+	    croak_xs_usage( cv, "attemp made to make zero height rectangle" );
 	
 	
-    
+	clone = sv_newmortal();
+	sv_setpvn( clone, "", 0 );
 
+	re_map.width  = end_x - begin_x + 1;
+	re_map.height  = end_y - begin_y + 1;
+	map_size = sizeof(struct map_like)+(re_map.width + 2) * (re_map.height+2) *sizeof( char );
+	SvGROW( clone, map_size ); 
 
+	/* Initializing */
+        newmap = (pmap) SvPV_nolen( clone );
+        Zero(newmap, map_size, char);
+        newmap->width = re_map.width;
+        newmap->height = re_map.height;
+	newmap->start_x = begin_x;
+	newmap->start_y = begin_y;
 
+        SvCUR_set(clone, map_size);
+	/*Copy passability */
+	if (1) {
+	    int x, y;
+	    for ( x = begin_x; x <= end_x ; ++x ){
+		for ( y = begin_y; y <= end_y; ++y ){
+		    newmap->map[ get_offset( newmap, x, y )]=
+			self->map[ get_offset( self, x, y )];
+		}
+	    }
+
+	};
+	
+	/*Prepare for return full object */
+	clone = newRV_inc( clone );
+	sv_bless( clone, SvSTASH( SvRV(ST(0) )));
+	XPUSHs( sv_2mortal(clone));
 
 void 
 new(self, options)
@@ -159,7 +201,7 @@ SV * options;
         XPUSHs(RETVALUE);
 
 void 
-start_x(self, newpos_x = 0)
+start_x(self, newpos_x = 0 )
 SV * self;
 int newpos_x;
     PPCODE:
@@ -181,7 +223,7 @@ int newpos_x;
         
 
 void 
-start_y(self, newpos_y = 0)
+start_y(self, newpos_y = 0 )
 SV * self;
 int newpos_y;
     PPCODE:
@@ -214,29 +256,44 @@ SV * self;
         
 
 void 
-height(self)
-SV * self;
-    INIT:
-    pmap newmap;
+height(pmap newmap)
     PPCODE:
-        if (!sv_isobject(self))
-            croak("Need object");
-        newmap = (pmap) SvPV_nolen(SvRV(self));
-        XPUSHs(sv_2mortal(newSViv(newmap->height)));
+    mXPUSHi(newmap->height);
+
+IV
+begin_y( pmap self )
+CODE:
+    RETVAL = self->start_y;
+OUTPUT:
+    RETVAL
+
+IV
+end_y( pmap self )
+CODE:
+    RETVAL = self->start_y + (signed) self->height -1 ;
+OUTPUT:
+    RETVAL
+
+IV
+begin_x( pmap self )
+CODE:
+    RETVAL = self->start_x;
+OUTPUT:
+    RETVAL
+
+IV
+end_x( pmap self )
+CODE:
+    RETVAL = self->start_x + (signed) self->width -1 ;
+OUTPUT:
+    RETVAL
 
 void 
-last_x(self)
-SV * self;
-    INIT:
-    pmap newmap;
+last_x(pmap self)
     PPCODE:
-        if (!sv_isobject(self))
-            croak("Need object");
-        newmap = (pmap) SvPV_nolen(SvRV(self));
-        XPUSHs(sv_2mortal(newSViv(newmap->start_x + (signed)newmap->width -1)));
+        mXPUSHi(self->start_x + (signed)self->width -1);
 
 
-        
 
 void 
 last_y(self)
@@ -250,20 +307,15 @@ SV * self;
         XPUSHs(sv_2mortal(newSViv(newmap->start_y + (signed)newmap->height-1)));
 
 void 
-set_start_xy(self, x, y)
-SV * self;
+set_start_xy(pmap self, x, y)
 int x;
 int y;
-    INIT:
-    pmap newmap;
     PPCODE:
-        if (!sv_isobject(self))
-            croak("Need object");
-
-        XPUSHs(self);
-        newmap = (pmap) SvPV_nolen(SvRV(self));
-        newmap->start_x = x;
-        newmap->start_y = y;
+	//PerlIO_stdoutf("start(x,y) = (%d,%d)\n", x, y);
+        self->start_x = x;
+        self->start_y = y;
+	//PerlIO_stdoutf("start(x,y) = (%d,%d)\n", self->width, self->height);
+	XPUSHs( ST(0) );
 
 void 
 get_passability(self, x, y)
@@ -276,10 +328,7 @@ int y;
         if (!sv_isobject(self))
             croak("Need object");
         newmap = (pmap) SvPV_nolen(SvRV(self));
-        if (x - newmap->start_x < 0 ||y - newmap->start_y <0){
-            XPUSHs(&PL_sv_no);
-        }
-        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->height){
+        if ( ! on_the_map( newmap, x, y )){
             XPUSHs(&PL_sv_no);
         }
         else {
@@ -300,14 +349,10 @@ int value;
         if (!sv_isobject(self))
             croak("Need object");
         newmap = (pmap) SvPV_nolen(SvRV(self));
-        if (x - newmap->start_x <0 ||y - newmap->start_y <0){
+        if ( ! on_the_map( newmap, x, y )){
             warn("x=%d,y=%d outside map", x, y);
             XPUSHs(&PL_sv_no);
-        }
-        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->height){
-            warn("x=%d,y=%d outside map", x, y);
-            XPUSHs(&PL_sv_no);
-        }
+	}
         else {
             int offset = ( (y - newmap->start_y + 1)*(newmap->width+2) + (x-newmap->start_x+1));
             newmap->map[offset] = value;
@@ -393,8 +438,8 @@ int value;
 
                 offset+= moves[ *position - '0'];
                 if (offset > max_offset || offset < min_offset || 
-                    offset % (newmap->width + 2) == 0 ||
-                    offset % (newmap->width + 2) == newmap->width + 1 ){
+                    offset % (int)(newmap->width + 2) == 0 ||
+                    offset % (int)(newmap->width + 2) == (int) newmap->width + 1 ){
                     croak("path otside map");
                 }
                 newmap->map[offset] = value;
@@ -420,10 +465,7 @@ char *path;
         if (!sv_isobject(self))
             croak("Need object");
         newmap = (pmap) SvPV_nolen(SvRV(self));
-        if (x< newmap->start_x  ||y< newmap->start_y ){
-            XPUSHs(&PL_sv_no);
-        }
-        else if (x - newmap->start_x >= newmap->width || y - newmap->start_y >= newmap->height){
+        if ( ! on_the_map( newmap, x, y )){
             XPUSHs(&PL_sv_no);
         }
         else {
@@ -481,6 +523,7 @@ SV* self;
     static char path_char[8]={'8','1','2','3','4','9','6','7'};
     static int weigths[8]   ={10,14,10,14,10,14,10,14};
     int iter_num;
+    int finish[5];
     PPCODE:
         if (!sv_isobject(self))
             croak("Need object");
@@ -519,7 +562,11 @@ SV* self;
         layout[current].g      = 0;
 
         
-        int finish[5] = { end_offset, end_offset+1, end_offset-1, end_offset+newmap->width+2, end_offset-newmap->width-2 };
+	finish[0] = end_offset;
+	finish[1] = end_offset+1;
+	finish[2] = end_offset-1;
+	finish[3] = end_offset+newmap->width+2;
+	finish[4] = end_offset-newmap->width-2;
         
 
         while( current != end_offset){
@@ -650,6 +697,7 @@ SV* self;
     static char path_char[8]={'8','1','2','3','4','9','6','7'};
     static int weigths[8]   ={10,14,10,14,10,14,10,14};
     int iter_num;
+    int index;
     PPCODE:
         if (!sv_isobject(self))
             croak("Need object");
@@ -735,11 +783,10 @@ SV* self;
             if (opens_start >= opens_end){
                 XPUSHs(&PL_sv_no);
                 goto free_allocated;
-            }
+            };
 
 
 
-            int index;
             if (0) {
                 int min_f; 
                 index = opens_start;

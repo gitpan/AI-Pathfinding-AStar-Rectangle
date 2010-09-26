@@ -11,3 +11,11 @@ Revision history for Perl extension AI::Pathfinding::AStar::Rectangle.
     -  added clone. 
     -  added test for this functions
 
+0.17  September 26  14:34 2010
+    -  begin_x, end_x, last_x, last_y
+    -  added typemap. 
+    -  added test 06 for this functions
+    -  remove some duplicated code
+    
+0.18  September 26  15:24 2010
+    -  added clone_rect for selection rectangle

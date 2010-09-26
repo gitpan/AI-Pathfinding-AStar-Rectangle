@@ -1,6 +1,4 @@
 package AI::Pathfinding::AStar::Rectangle;
-
-use 5.008000;
 use strict;
 use warnings;
 
@@ -24,7 +22,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(	
 );
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 require XSLoader;
 XSLoader::load('AI::Pathfinding::AStar::Rectangle', $VERSION);

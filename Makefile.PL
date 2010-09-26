@@ -1,8 +1,7 @@
-use 5.008000;
 use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
-unless   ($] >= 5.008){
+unless   ($] >= 5.008001){
     warn " this perl version not supported $] ";
     exit;
 }

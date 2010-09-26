@@ -49,9 +49,23 @@ BEGIN {
     is( $q->height, $m->height, "clone height");
     is( $q->start_x, $m->start_x, "clone start_x");
     is( $q->start_y, $m->start_y, "clone start_y");
-    is( $q->last_y, $m->last_y, "clone last_y");
     is( $q->last_x, $m->last_x, "clone last_x");
+    is( $q->last_y, $m->last_y, "clone last_y");
 
+
+
+    $q = $m->clone_rect( 1, 1, 2, 3);
+    $ok = 1;
+    $q->foreach_xy( sub {$ok &&= defined $a && defined $b && defined $_ && $_ == $a %2 ; } );
+    is($ok, 1, "foreach on rect clone" );
+    ok( $q != $m, "rect clone is different" );
+
+    is( $q->width, 2, "clone width");
+    is( $q->height, 3, "clone height");
+    is( $q->start_x, 1, "clone start_x");
+    is( $q->start_y, 1, "clone start_y");
+    is( $q->last_x, 2, "clone last_x");
+    is( $q->last_y, 3, "clone last_y");
 
 
 

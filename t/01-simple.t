@@ -6,10 +6,17 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test::More tests => 10+9+2+1;
-use AI::Pathfinding::AStar::Rectangle qw(create_map);
 
 1 for $Test::More::TODO;
 our $T = 'AI::Pathfinding::AStar::Rectangle';
+BEGIN{
+    eval "use ExtUtils::testlib;" unless grep { m/::testlib/ } keys %INC;
+    print "not ok $@" if $@;
+    $T = 'AI::Pathfinding::AStar::Rectangle';
+    eval "use $T qw(create_map);";
+    die "Can't load $T: $@." if $@;
+}
+use AI::Pathfinding::AStar::Rectangle qw(create_map);
 
 my $a= $T->new({ width => 12, height => 15 });
 ok($a);
