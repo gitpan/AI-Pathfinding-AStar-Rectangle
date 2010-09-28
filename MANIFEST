@@ -13,6 +13,7 @@ t/03-path-valid.t
 t/04-astar.t
 t/05-foreach.t
 t/06-setstart.t
+t/07-dastar.t
 
 examples/snake_labirint.pl
 Benchmark/perl-vs-xs.pl

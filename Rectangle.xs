@@ -9,7 +9,7 @@
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
 #define inline 
 
-bool is_hash(SV *x){
+inline bool is_hash(SV *x){
     return SvTYPE(x) == SVt_PVHV;
 }
 
@@ -33,6 +33,127 @@ struct map_like{
 };
 
 
+#ifdef XMULTICALL
+
+void
+foreach_xy(self, block)
+SV * self;
+SV * block;
+PROTOTYPE: $&
+CODE:
+{
+    dVAR; dMULTICALL;
+    pmap newmap;
+    int x,y;
+    GV *agv,*bgv,*gv;
+    HV *stash;
+    I32 gimme = G_VOID;
+    SV **args = &PL_stack_base[ax];
+    SV *x1, *y1, *value;
+    AV *argv;
+
+    CV *cv;
+    if (!sv_isobject(self))
+        croak("Need object");
+    newmap = (pmap) SvPV_nolen(SvRV(self));
+    cv = sv_2cv(block, &stash, &gv, 0);
+    agv = gv_fetchpv("a", TRUE, SVt_PV);
+    bgv = gv_fetchpv("b", TRUE, SVt_PV);
+    SAVESPTR(GvSV(agv));
+    SAVESPTR(GvSV(bgv));
+    SAVESPTR(GvSV(PL_defgv));
+    x1 = sv_newmortal();
+    y1 = sv_newmortal();
+
+    SAVESPTR(GvAV(PL_defgv));
+    if (0){
+        argv = newAV();
+        av_push(argv, newSViv(10));
+        av_push(argv, newSViv(20));
+        sv_2mortal((SV*) argv);
+        GvAV(PL_defgv) = argv;
+    }
+    value = sv_newmortal();
+    GvSV(agv) = x1;
+    GvSV(bgv) = y1;
+    GvSV(PL_defgv)  = value;
+    PUSH_MULTICALL(cv);
+    if (items>2){
+        for(y =newmap->height-1 ; y>=0; --y){
+            for (x = 0; x < newmap->width; ++x){
+                sv_setiv(x1,x + newmap->start_x);
+                sv_setiv(y1,y + newmap->start_y);
+                sv_setiv(value, newmap->map[get_offset_abs(newmap, x,y)]);
+                MULTICALL;
+
+            }
+        }
+
+    }
+    else {
+        for(y =0; y< newmap->height; ++y){
+            for (x = 0; x < newmap->width; ++x){
+                sv_setiv(x1,x + newmap->start_x);
+                sv_setiv(y1,y + newmap->start_y);
+                sv_setiv(value, newmap->map[get_offset_abs(newmap, x,y)]);
+                MULTICALL;
+
+            }
+        }
+    }
+    POP_MULTICALL;
+    XSRETURN_EMPTY;
+}
+
+void
+foreach_xy_set (self, block)
+SV * self;
+SV * block;
+PROTOTYPE: $&
+CODE:
+{
+    dVAR; dMULTICALL;
+    pmap newmap;
+    int x,y;
+    GV *agv,*bgv,*gv;
+    HV *stash;
+    I32 gimme = G_VOID;
+    SV **args = &PL_stack_base[ax];
+    SV *x1, *y1, *value;
+
+    CV *cv;
+    if (!sv_isobject(self))
+        croak("Need object");
+    newmap = (pmap) SvPV_nolen(SvRV(self));
+    cv = sv_2cv(block, &stash, &gv, 0);
+    agv = gv_fetchpv("a", TRUE, SVt_PV);
+    bgv = gv_fetchpv("b", TRUE, SVt_PV);
+    SAVESPTR(GvSV(agv));
+    SAVESPTR(GvSV(bgv));
+    SAVESPTR(GvSV(PL_defgv));
+    x1 = sv_newmortal();
+    y1 = sv_newmortal();
+    value = sv_newmortal();
+    GvSV(agv) = x1;
+    GvSV(bgv) = y1;
+    GvSV(PL_defgv)  = value;
+    PUSH_MULTICALL(cv);
+    for(y =0; y< newmap->height; ++y){
+        for (x = 0; x < newmap->width; ++x){
+            sv_setiv(x1,x + newmap->start_x);
+            sv_setiv(y1,y + newmap->start_y);
+            sv_setiv(value, newmap->map[get_offset_abs(newmap, x,y)]);
+            MULTICALL;
+            
+            newmap->map[get_offset_abs(newmap, x, y)] = SvIV(*PL_stack_sp);
+        }
+    }
+    POP_MULTICALL;
+    XSRETURN_EMPTY;
+}
+
+#endif
+
 typedef struct map_like * pmap;
 static  int path_weigths[10]={50,14,10,14,10,50,10,14,10,14};
 
@@ -51,7 +172,7 @@ bool check_options(pmap map, HV *opts){
 }
 
 void
-init_move_offset(pmap map, int * const moves, int trim){
+inline init_move_offset(pmap map, int * const moves, int trim){
     const int dx = 1;
     const int dy = map->width + 2;
     moves[0] = 0;
@@ -202,43 +323,32 @@ SV * options;
 
 void 
 start_x(self, newpos_x = 0 )
-SV * self;
+pmap self;
 int newpos_x;
     PPCODE:
-    if (!sv_isobject(self))
-	croak("Need object");
-    {
-	pmap newmap;
-	newmap = (pmap) SvPV_nolen(SvRV(self));
-	if (items>1){
-	    newmap->start_x = newpos_x;
-	    XPUSHs(self);
-	}
-	else {
-	    mXPUSHi(newmap->start_x);
-	}
+    if (items>1){
+	    self->start_x = newpos_x;
+	    XPUSHs(ST(0));
     }
+    else {
+	mXPUSHi(self->start_x);
+    };
+    
 
 
         
 
 void 
 start_y(self, newpos_y = 0 )
-SV * self;
+pmap self;
 int newpos_y;
     PPCODE:
-    if (!sv_isobject(self))
-	croak("Need object");
-    {
-	pmap newmap;
-	newmap = (pmap) SvPV_nolen(SvRV(self));
-	if (items>1){
-	    newmap->start_y = newpos_y;
-	    XPUSHs(self);
-	}
-	else {
-	    mXPUSHi(newmap->start_y);
-	}
+    if (items>1){
+	self->start_y = newpos_y;
+	XPUSHs(ST(0));
+    }
+    else {
+	mXPUSHi(self->start_y);
     }
 
 void 
@@ -339,24 +449,19 @@ int y;
 
 void
 set_passability(self, x, y, value)
-SV * self;
+pmap self;
 int x;
 int y;
 int value;
-    INIT:
-    pmap newmap;
     PPCODE:
-        if (!sv_isobject(self))
-            croak("Need object");
-        newmap = (pmap) SvPV_nolen(SvRV(self));
-        if ( ! on_the_map( newmap, x, y )){
+        if ( ! on_the_map( self, x, y )){
             warn("x=%d,y=%d outside map", x, y);
             XPUSHs(&PL_sv_no);
 	}
         else {
-            int offset = ( (y - newmap->start_y + 1)*(newmap->width+2) + (x-newmap->start_x+1));
-            newmap->map[offset] = value;
-        }
+            int offset = ( (y - self->start_y + 1)*(self->width+2) + (x-self->start_x+1));
+            self->map[offset] = value;
+        };
 
 
 void
@@ -390,7 +495,7 @@ char *path;
             offset+= moves[ *position - '0'];
             weigth+= path_weigths[ *position - '0' ];
             ++position;
-        }
+        };
         gimme = GIMME_V;
         if (gimme == G_ARRAY){
             int x,y;
@@ -402,24 +507,16 @@ char *path;
             mXPUSHi(x);
             mXPUSHi(y);
             mXPUSHi(weigth);
-        }
+        };
         last_op:;
 
+
 void 
-draw_path_xy( self, x, y, path, value )
-SV * self;
-int x;
-int y;
-char *path;
-int value;
-    INIT:
-    pmap newmap;
+draw_path_xy( pmap newmap, int x, int y, char *path, int value )
+    PREINIT:
     char *position;
     int moves[10];
     PPCODE:
-        if (!sv_isobject(self))
-            croak("Need object");
-        newmap = (pmap) SvPV_nolen(SvRV(self));
         if ( !on_the_map(newmap, x, y) ){
             croak("start is outside the map");
         }
@@ -730,7 +827,6 @@ SV* self;
         opens_start = 0;
         opens_end   = 0;
 
-
         iter_num = 0;
         current = start_offset;
         layout[current].g      = 0;
@@ -741,7 +837,7 @@ SV* self;
             layout[current].closed = 1;
             for(i=0; i<8; ++i){
                 int  nextpoint = current + moves[i];
-		int g;
+		        int g;
                 if ( layout[nextpoint].closed || newmap->map[nextpoint] == 0 )
                     continue;
                 g = weigths[i] + layout[current].g;

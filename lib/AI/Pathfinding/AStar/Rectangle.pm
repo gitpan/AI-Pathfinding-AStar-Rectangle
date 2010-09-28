@@ -22,7 +22,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(	
 );
 
-our $VERSION = '0.17';
+our $VERSION = '0.19';
 
 require XSLoader;
 XSLoader::load('AI::Pathfinding::AStar::Rectangle', $VERSION);
@@ -278,7 +278,7 @@ A.G. Grishaev, E<lt>gtoly@cpan.org<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by A.G. Grishaev
+Copyright (C) 2010 by A.G. Grishaev
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
