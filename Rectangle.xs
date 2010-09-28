@@ -7,7 +7,10 @@
 
 #define cxinc() Perl_cxinc(aTHX)
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
-#define inline 
+
+#ifdef _MSC_VER
+    #define inline 
+#endif
 
 inline bool is_hash(SV *x){
     return SvTYPE(x) == SVt_PVHV;
@@ -290,8 +293,6 @@ new(self, options)
 SV * self;
 SV * options;
     INIT:
-    //int width;
-    // int height;
     SV * object;
     struct map_like re_map;
     pmap newmap;
@@ -322,9 +323,7 @@ SV * options;
         XPUSHs(RETVALUE);
 
 void 
-start_x(self, newpos_x = 0 )
-pmap self;
-int newpos_x;
+start_x(pmap self, int newpos_x = 0 )
     PPCODE:
     if (items>1){
 	    self->start_x = newpos_x;
@@ -339,9 +338,7 @@ int newpos_x;
         
 
 void 
-start_y(self, newpos_y = 0 )
-pmap self;
-int newpos_y;
+start_y(pmap self, int newpos_y = 0 )
     PPCODE:
     if (items>1){
 	self->start_y = newpos_y;
@@ -352,69 +349,46 @@ int newpos_y;
     }
 
 void 
-width(self)
-SV * self;
-    INIT:
-    pmap newmap;
+width(pmap newmap)
     PPCODE:
-        if (!sv_isobject(self))
-            croak("Need object");
-        newmap = (pmap) SvPV_nolen(SvRV(self));
-        XPUSHs(sv_2mortal(newSViv(newmap->width)));
-
-
-        
+    XPUSHs(sv_2mortal(newSViv(newmap->width)));
 
 void 
 height(pmap newmap)
     PPCODE:
     mXPUSHi(newmap->height);
 
-IV
+void
 begin_y( pmap self )
-CODE:
-    RETVAL = self->start_y;
-OUTPUT:
-    RETVAL
+PPCODE:
+    mXPUSHi(self->start_y);
 
-IV
+void
 end_y( pmap self )
-CODE:
-    RETVAL = self->start_y + (signed) self->height -1 ;
-OUTPUT:
-    RETVAL
+PPCODE:
+    mXPUSHi(self->start_y + (signed) self->height -1) ;
 
-IV
+void
 begin_x( pmap self )
-CODE:
-    RETVAL = self->start_x;
-OUTPUT:
-    RETVAL
+PPCODE:
+    mXPUSHi( self->start_x );
 
-IV
+void
 end_x( pmap self )
-CODE:
-    RETVAL = self->start_x + (signed) self->width -1 ;
-OUTPUT:
-    RETVAL
+PPCODE:
+    mXPUSHi( self->start_x + (signed) self->width -1 );
 
 void 
 last_x(pmap self)
     PPCODE:
-        mXPUSHi(self->start_x + (signed)self->width -1);
+    mXPUSHi(self->start_x + (signed)self->width -1);
 
 
 
 void 
-last_y(self)
-SV * self;
-    INIT:
-    pmap newmap;
+last_y(pmap newmap)
     PPCODE:
-        if (!sv_isobject(self))
-            croak("Need object");
-        newmap = (pmap) SvPV_nolen(SvRV(self));
-        XPUSHs(sv_2mortal(newSViv(newmap->start_y + (signed)newmap->height-1)));
+    mXPUSHi(newmap->start_y + (signed)newmap->height-1);
 
 void 
 set_start_xy(pmap self, x, y)
@@ -742,21 +716,21 @@ SV* self;
         }
 
 	{ 
-	    int i;
+	    STRLEN i;
 	    SV* path;
-	    char *path_pv;
+	    U8 *path_pv;
 	    STRLEN path_len;
 
 	    path = sv_2mortal(newSVpvn("",0));
 
 	    while(current != start_offset){
-		int i = layout[current].prev;
+		STRLEN i = layout[current].prev;
 		sv_catpvn_nomg(path, &path_char[i], 1);
 		current -= moves[i];
 	    };
 	    path_pv = SvPV( path, path_len);
 	    for(i=0; i<path_len/2; ++i){
-		char x;
+		U8 x;
 		x = path_pv[path_len-i-1];
 		path_pv[path_len - i - 1] = path_pv[i];
 		path_pv[ i ] = x;
@@ -791,7 +765,7 @@ SV* self;
     int *opens;
     int opens_start;
     int opens_end;
-    static char path_char[8]={'8','1','2','3','4','9','6','7'};
+    static U8 path_char[8]={'8','1','2','3','4','9','6','7'};
     static int weigths[8]   ={10,14,10,14,10,14,10,14};
     int iter_num;
     int index;
@@ -917,21 +891,21 @@ SV* self;
         }
 
 	{ 
-	    int i;
+	    STRLEN i;
 	    SV* path;
-	    char *path_pv;
+	    U8 *path_pv;
 	    STRLEN path_len;
 
 	    path = sv_2mortal(newSVpvn("",0));
 
 	    while(current != start_offset){
-		int i = layout[current].prev;
+		STRLEN i = layout[current].prev;
 		sv_catpvn_nomg(path, &path_char[i], 1);
 		current -= moves[i];
 	    };
 	    path_pv = SvPV( path, path_len);
 	    for(i=0; i<path_len/2; ++i){
-		char x;
+		U8 x;
 		x = path_pv[path_len-i-1];
 		path_pv[path_len - i - 1] = path_pv[i];
 		path_pv[ i ] = x;
