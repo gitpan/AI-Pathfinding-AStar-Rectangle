@@ -27,3 +27,5 @@ Revision history for Perl extension AI::Pathfinding::AStar::Rectangle.
 0.20  September 28  06:10 2010
     - Get rid of some warnings && MSVS compiler staff( inline )
 
+0.21  September 28  06:10 2010
+    - Some perl 5.8.8 are bad. ( Create own croak_xs_usage )
