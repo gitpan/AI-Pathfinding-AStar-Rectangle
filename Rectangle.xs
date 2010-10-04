@@ -39,15 +39,17 @@ struct map_like{
 #  define PERL_UNUSED_VAR(var) if (0) var = var
 #endif
 
+
+#ifndef croak_xs_usage
 #ifndef PERL_ARGS_ASSERT_CROAK_XS_USAGE
 #define PERL_ARGS_ASSERT_CROAK_XS_USAGE assert(cv); assert(params)
 
 /* prototype to pass -Wmissing-prototypes */
 STATIC void
-S_croak_xs_usage(pTHX_ const CV *const cv, const char *const params);
+M_croak_xs_usage(pTHX_ const CV *const cv, const char *const params);
 
 STATIC void
-S_croak_xs_usage(pTHX_ const CV *const cv, const char *const params)
+M_croak_xs_usage(pTHX_ const CV *const cv, const char *const params)
 {
     const GV *const gv = CvGV(cv);
 
@@ -69,9 +71,10 @@ S_croak_xs_usage(pTHX_ const CV *const cv, const char *const params)
 }
 #endif
 #ifdef PERL_IMPLICIT_CONTEXT
-#define croak_xs_usage(a,b)     S_croak_xs_usage(aTHX_ a,b)
+#define croak_xs_usage(a,b)     M_croak_xs_usage(aTHX_ a,b)
 #else
-#define croak_xs_usage          S_croak_xs_usage
+#define croak_xs_usage          M_croak_xs_usage
+#endif
 #endif
 
 
@@ -636,10 +639,11 @@ SV* self;
     int *opens;
     int opens_start;
     int opens_end;
-    static char path_char[8]={'8','1','2','3','4','9','6','7'};
+    static U8 path_char[8]={'8','1','2','3','4','9','6','7'};
     static int weigths[8]   ={10,14,10,14,10,14,10,14};
     int iter_num;
     int finish[5];
+    int map_size;
     PPCODE:
         if (!sv_isobject(self))
             croak("Need object");
@@ -664,8 +668,9 @@ SV* self;
             goto last_op;
         }
 
-        Newxz(layout, (2+newmap->width) * (2+newmap->height), struct map_item);
-        Newx(opens, (2+newmap->width) * (2+newmap->height), int);
+	map_size= (2+newmap->width) * (2+newmap->height);
+        Newxz(layout, map_size, struct map_item);
+        Newx(opens, map_size, int);
 
         init_move_offset(newmap, moves, 1);
 
@@ -768,12 +773,18 @@ SV* self;
 
 	    path = sv_2mortal(newSVpvn("",0));
 
+	    //
+	    // 1
+
 	    while(current != start_offset){
 		STRLEN i = layout[current].prev;
-		sv_catpvn_nomg(path, &path_char[i], 1);
+		sv_catpvn_nomg(path, (char *) &path_char[i], (STRLEN) 1);
 		current -= moves[i];
 	    };
-	    path_pv = SvPV( path, path_len);
+	    // 2
+	    // 3
+	    //
+	    path_pv = (U8*)SvPV( path, path_len);
 	    for(i=0; i<path_len/2; ++i){
 		U8 x;
 		x = path_pv[path_len-i-1];
@@ -814,6 +825,7 @@ SV* self;
     static int weigths[8]   ={10,14,10,14,10,14,10,14};
     int iter_num;
     int index;
+    int map_size;
     PPCODE:
         if (!sv_isobject(self))
             croak("Need object");
@@ -838,8 +850,9 @@ SV* self;
             goto last_op;
         }
 
-        Newxz(layout, (2+newmap->width) * (2+newmap->height), struct map_item);
-        Newx(opens, (2+newmap->width) * (2+newmap->height), int);
+	map_size = (2+newmap->width) * (2+newmap->height);
+        Newxz(layout, map_size, struct map_item);
+        Newx(opens, map_size, int);
 
         init_move_offset(newmap, moves, 1);
 
@@ -945,10 +958,10 @@ SV* self;
 
 	    while(current != start_offset){
 		STRLEN i = layout[current].prev;
-		sv_catpvn_nomg(path, &path_char[i], 1);
+		sv_catpvn_nomg(path, (char *)&path_char[i], (STRLEN)1);
 		current -= moves[i];
 	    };
-	    path_pv = SvPV( path, path_len);
+	    path_pv = (U8*)SvPV( path, path_len);
 	    for(i=0; i<path_len/2; ++i){
 		U8 x;
 		x = path_pv[path_len-i-1];
