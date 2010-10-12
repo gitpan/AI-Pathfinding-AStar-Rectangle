@@ -33,3 +33,6 @@ Revision history for Perl extension AI::Pathfinding::AStar::Rectangle.
 0.22  October   3  21:10 2010
     - Some perl 5.8.8 are still bad. ( next try )
     - remove some other warnings
+
+0.23  October   12  21:10 2010
+    - Makefile.PL && LICENSE
